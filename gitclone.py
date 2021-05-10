@@ -23,7 +23,6 @@ def ensure_outdir(dirname):
     return dirname
 
 
-
 def do_fetch_all_branches(opath):
     os.system('cd "%s" && git branch -r | grep -v \'\->\' | while read remote; do git branch --track "${remote#origin/}" "$remote"; done' % opath)
 
@@ -31,8 +30,10 @@ def do_fetch_all_branches(opath):
 def do_fetch(opath):
     os.system('cd "%s" && git fetch --all' % (opath))
 
+
 def do_pull(opath):
     os.system('cd "%s" && git pull --all' % (opath))
+
 
 def do_fetch_repo(repo, outdir):
     bname = os.path.basename(repo)
@@ -47,16 +48,16 @@ def do_fetch_repo(repo, outdir):
     do_fetch(opath)
     do_pull(opath)
 
-    #else:
-    #    os.system('cd "%s" && git pull --all' % (opath))
-    #os.path.makedirs(opath)
+
+def get_repos(repofile):
+    if repofile is None:
+        return None
+
+    return parseRepos(repofile)
 
 
 def do_sync(repofile, outdir):
-    if repofile is None:
-        return False
-
-    repos = parseRepos(repofile)
+    repos = get_repos(repofile)
     if not repos:
         return False
 
@@ -68,6 +69,19 @@ def do_sync(repofile, outdir):
         do_fetch_repo(repo, odir)
 
     return True
+
+
+def do_test(repofile, outdir):
+    repos = get_repos(repofile)
+    if not repos:
+        return False
+
+    odir = ensure_outdir(outdir)
+    if odir is None:
+        return False
+
+    return True
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -82,7 +96,7 @@ if __name__ == '__main__':
     if flags['operation'] == 'sync':
         res = do_sync(flags['repos'], flags['output'])
     elif flags['operation'] == 'test':
-        res = do_test(flags['repos'])
+        res = do_test(flags['repos'], flags['output'])
     elif flags['operation'] == 'help':
         res = False
     else:
